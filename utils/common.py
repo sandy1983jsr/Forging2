@@ -1,19 +1,24 @@
 import pandas as pd
-import plotly.express as px
 import streamlit as st
 
-def load_or_sample(file_label, generator_func, helptext="Upload CSV or use sample data"):
+def unified_data_loader(label, generator_func, helptext="Upload CSV, connect SCADA, or use sample data"):
     st.write(helptext)
-    uploaded = st.file_uploader(f"Upload {file_label} CSV", type=["csv"])
-    if uploaded:
-        df = pd.read_csv(uploaded)
-    else:
-        if st.button(f"Use Sample {file_label} Data"):
+    method = st.radio(
+        f"{label} Data Source",
+        options=["Upload CSV", "Connect SCADA", "Sample Data"],
+        horizontal=True,
+        key=f"{label}_method"
+    )
+    df = None
+    if method == "Upload CSV":
+        uploaded = st.file_uploader(f"Upload {label} CSV", type=["csv"], key=f"{label}_csv")
+        if uploaded:
+            df = pd.read_csv(uploaded)
+    elif method == "Connect SCADA":
+        st.info("Simulated SCADA connection. Replace this with real SCADA integration.")
+        if st.button(f"Load {label} from SCADA", key=f"{label}_scada"):
+            df = generator_func()  # Simulate SCADA with sample data for now
+    elif method == "Sample Data":
+        if st.button(f"Generate Sample {label} Data", key=f"{label}_sample"):
             df = generator_func()
-        else:
-            df = None
     return df
-
-def plot_timeseries(df, ycols, title, ylabel):
-    fig = px.line(df, x="timestamp", y=ycols, title=title, labels={"value": ylabel})
-    st.plotly_chart(fig, use_container_width=True)
