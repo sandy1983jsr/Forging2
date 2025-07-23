@@ -1,15 +1,18 @@
 import streamlit as st
-from sample_data import waste_data
-from utils.common import load_or_sample, plot_timeseries
 import numpy as np
+import plotly.express as px
+from sample_data import waste_data
+from utils.common import unified_data_loader
 
 def waste_dashboard():
     st.header("Waste Generation & Minimization")
-    df = load_or_sample("Waste", waste_data, "Upload waste data or use sample data.")
+    df = unified_data_loader("Waste", waste_data)
     if df is not None:
         st.success("Data Loaded")
-        st.write("Last 5 records:", df.tail())
-        plot_timeseries(df, ["slag_ton", "dust_ton", "wastewater_m3"], "Waste Streams", "Tonnes / m3")
+        st.write(df.tail())
+        fig = px.line(df, x="timestamp", y=["slag_ton", "dust_ton", "wastewater_m3"],
+                      title="Waste Streams", labels={"value":"Tonnes / m3"})
+        st.plotly_chart(fig, use_container_width=True)
 
         st.subheader("KPIs")
         st.metric("Total Slag (t)", f"{df['slag_ton'].sum():.1f}")
