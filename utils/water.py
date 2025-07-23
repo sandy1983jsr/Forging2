@@ -1,15 +1,17 @@
 import streamlit as st
-from sample_data import water_data
-from utils.common import load_or_sample, plot_timeseries
 import numpy as np
+import plotly.express as px
+from sample_data import water_data
+from utils.common import unified_data_loader
 
 def water_dashboard():
     st.header("Water Consumption & Optimization")
-    df = load_or_sample("Water", water_data, "Upload water meters or use sample data.")
+    df = unified_data_loader("Water", water_data)
     if df is not None:
         st.success("Data Loaded")
-        st.write("Last 5 records:", df.tail())
-        plot_timeseries(df, ["water_in_m3", "water_out_m3"], "Water In/Out", "m3")
+        st.write(df.tail())
+        fig = px.line(df, x="timestamp", y=["water_in_m3", "water_out_m3"], title="Water In/Out", labels={"value":"m3"})
+        st.plotly_chart(fig, use_container_width=True)
 
         st.subheader("KPIs")
         total_in = df["water_in_m3"].sum()
