@@ -6,6 +6,12 @@ from sample_data import generate_sample_data
 from dashboard import show_dashboards
 from reporting import build_pdf_report
 
+# Determine which rerun function to use
+if hasattr(st, "rerun"):
+    rerun = st.rerun
+else:
+    rerun = st.experimental_rerun
+
 st.set_page_config(page_title="RKFL Scientific & Digital Dashboard", layout="wide", initial_sidebar_state="expanded")
 st.sidebar.image("https://img.icons8.com/fluency/48/000000/automation.png", width=48)
 st.sidebar.title("RKFL Workflow")
@@ -21,33 +27,33 @@ if workflow.state == "ingest":
         st.info("Simulated SCADA/Meter connection. Replace with real API for production.")
         if st.button("Load SCADA/Meter Data"):
             data = get_scada_data()
-            workflow.data = data  # Store data in workflow/session state
+            workflow.data = data
             workflow.advance("review")
-            st.experimental_rerun()
+            rerun()
     elif data_source == "Upload CSV":
         uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
         if uploaded_file:
             import pandas as pd
             data = pd.read_csv(uploaded_file)
-            workflow.data = data  # Store data in workflow/session state
+            workflow.data = data
             workflow.advance("review")
-            st.experimental_rerun()
+            rerun()
     elif data_source == "Sample Data":
         if st.button("Generate Sample Data"):
             data = generate_sample_data()
-            workflow.data = data  # Store data in workflow/session state
+            workflow.data = data
             workflow.advance("review")
-            st.experimental_rerun()
+            rerun()
     st.stop()
 
 # Step 2: Data Review & Preprocessing
 if workflow.state == "review":
-    data = workflow.data  # READ data from workflow/session state
+    data = workflow.data
     st.subheader("Step 2: Data Review & Preprocessing")
     if data is None:
         st.warning("No data loaded. Please go back and select a data source.")
         workflow.reset()
-        st.stop()
+        rerun()
     st.write("Preview of raw data:")
     st.write(data.head())
     if st.button("Process & Clean Data"):
@@ -55,12 +61,12 @@ if workflow.state == "review":
         workflow.data = processed_data
         workflow.qc_report = qc_report
         workflow.advance("analyze")
-        st.experimental_rerun()
+        rerun()
     st.stop()
 
 # Step 3: Scientific & Engineering Analysis
 if workflow.state == "analyze":
-    data = workflow.data  # READ processed data
+    data = workflow.data
     st.subheader("Step 3: Scientific & Engineering Analysis")
     st.write("Key Data Quality Metrics:")
     st.dataframe(workflow.qc_report)
@@ -70,7 +76,7 @@ if workflow.state == "analyze":
     show_dashboards(data, analysis_results)
     if st.button("Proceed to Reporting"):
         workflow.advance("report")
-        st.experimental_rerun()
+        rerun()
     st.stop()
 
 # Step 4: Automated Reporting
@@ -88,4 +94,4 @@ if workflow.state == "report":
         )
     if st.button("Restart Workflow"):
         workflow.reset()
-        st.experimental_rerun()
+        rerun()
