@@ -1,97 +1,38 @@
 import streamlit as st
-from workflow import WorkflowManager
-from scada_module import get_scada_data
-from data_processing import process_data
-from sample_data import generate_sample_data
-from dashboard import show_dashboards
-from reporting import build_pdf_report
+from utils.energy import energy_dashboard
+from utils.gas import gas_dashboard
+from utils.water import water_dashboard
+from utils.cooling import cooling_dashboard
+from utils.materials import materials_dashboard
+from utils.waste import waste_dashboard
 
-# Determine which rerun function to use
-if hasattr(st, "rerun"):
-    rerun = st.rerun
-else:
-    rerun = st.experimental_rerun
-
-st.set_page_config(page_title="RKFL Scientific & Digital Dashboard", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="RKFL Utilities Optimization", layout="wide")
 st.sidebar.image("https://img.icons8.com/fluency/48/000000/automation.png", width=48)
-st.sidebar.title("RKFL Workflow")
+st.sidebar.title("RKFL Utilities & Sustainability")
 
-workflow = WorkflowManager()
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "Electricity (EAF)", 
+    "Gas (RLNG)", 
+    "Water",
+    "Cooling",
+    "Materials",
+    "Waste"
+])
 
-# Step 1: Data Ingestion
-st.sidebar.subheader("Step 1: Data Source")
-data_source = st.sidebar.radio("Select Data Source", ("SCADA/Meter", "Upload CSV", "Sample Data"))
+with tab1:
+    energy_dashboard()
 
-if workflow.state == "ingest":
-    if data_source == "SCADA/Meter":
-        st.info("Simulated SCADA/Meter connection. Replace with real API for production.")
-        if st.button("Load SCADA/Meter Data"):
-            data = get_scada_data()
-            workflow.data = data
-            workflow.advance("review")
-            rerun()
-    elif data_source == "Upload CSV":
-        uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
-        if uploaded_file:
-            import pandas as pd
-            data = pd.read_csv(uploaded_file)
-            workflow.data = data
-            workflow.advance("review")
-            rerun()
-    elif data_source == "Sample Data":
-        if st.button("Generate Sample Data"):
-            data = generate_sample_data()
-            workflow.data = data
-            workflow.advance("review")
-            rerun()
-    st.stop()
+with tab2:
+    gas_dashboard()
 
-# Step 2: Data Review & Preprocessing
-if workflow.state == "review":
-    data = workflow.data
-    st.subheader("Step 2: Data Review & Preprocessing")
-    if data is None:
-        st.warning("No data loaded. Please go back and select a data source.")
-        workflow.reset()
-        rerun()
-    st.write("Preview of raw data:")
-    st.write(data.head())
-    if st.button("Process & Clean Data"):
-        processed_data, qc_report = process_data(data)
-        workflow.data = processed_data
-        workflow.qc_report = qc_report
-        workflow.advance("analyze")
-        rerun()
-    st.stop()
+with tab3:
+    water_dashboard()
 
-# Step 3: Scientific & Engineering Analysis
-if workflow.state == "analyze":
-    data = workflow.data
-    st.subheader("Step 3: Scientific & Engineering Analysis")
-    st.write("Key Data Quality Metrics:")
-    st.dataframe(workflow.qc_report)
-    from analysis import run_analyses
-    analysis_results = run_analyses(data)
-    workflow.analysis_results = analysis_results
-    show_dashboards(data, analysis_results)
-    if st.button("Proceed to Reporting"):
-        workflow.advance("report")
-        rerun()
-    st.stop()
+with tab4:
+    cooling_dashboard()
 
-# Step 4: Automated Reporting
-if workflow.state == "report":
-    st.subheader("Step 4: Automated Reporting")
-    st.write("Generate a consulting-grade report (PDF) with all key findings, figures, and summary.")
-    if st.button("Generate PDF Report"):
-        pdf_bytes = build_pdf_report(workflow.data, workflow.analysis_results)
-        st.success("Report generated successfully!")
-        st.download_button(
-            label="Download PDF Report",
-            data=pdf_bytes,
-            file_name="RKFL_Analysis_Report.pdf",
-            mime="application/pdf"
-        )
-    if st.button("Restart Workflow"):
-        workflow.reset()
-        rerun()
+with tab5:
+    materials_dashboard()
+
+with tab6:
+    waste_dashboard()
