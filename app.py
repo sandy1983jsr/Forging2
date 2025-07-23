@@ -6,13 +6,14 @@ from utils.cooling import cooling_dashboard
 from utils.materials import materials_dashboard
 from utils.waste import waste_dashboard
 
-st.set_page_config(page_title="RKFL Utilities Optimization", layout="wide")
+st.set_page_config(page_title="RKFL Plant Utilities & Optimization", layout="wide")
+
 st.sidebar.image("https://img.icons8.com/fluency/48/000000/automation.png", width=48)
-st.sidebar.title("RKFL Utilities & Sustainability")
+st.sidebar.title("RKFL Utilities & Optimization")
 
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "Electricity (EAF)", 
-    "Gas (RLNG)", 
+    "Energy (EAF & Forging)",
+    "Gas (RLNG)",
     "Water",
     "Cooling",
     "Materials",
